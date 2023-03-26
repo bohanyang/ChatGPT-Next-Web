@@ -31,7 +31,7 @@ function getHeaders() {
   const accessStore = useAccessStore.getState();
   let headers: Record<string, string> = {};
 
-  if (accessStore.enabledAccessControl()) {
+  if (accessStore.accessCode !== '') {
     headers["access-code"] = accessStore.accessCode;
   }
 

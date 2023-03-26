@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { queryMeta } from "../utils";
 
 export interface AccessControlStore {
   accessCode: string;
@@ -16,7 +15,7 @@ export const useAccessStore = create<AccessControlStore>()(
     (set, get) => ({
       accessCode: "",
       enabledAccessControl() {
-        return queryMeta("access") === "enabled";
+        return true;
       },
       updateCode(code: string) {
         set((state) => ({ accessCode: code }));

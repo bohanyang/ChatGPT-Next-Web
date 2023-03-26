@@ -3,7 +3,6 @@ import "./styles/globals.scss";
 import "./styles/markdown.scss";
 import "./styles/prism.scss";
 import process from "child_process";
-import { ACCESS_CODES } from "./api/access";
 
 const COMMIT_ID = process
   .execSync("git rev-parse --short HEAD")
@@ -18,7 +17,6 @@ export const metadata = {
 function Meta() {
   const metas = {
     version: COMMIT_ID,
-    access: ACCESS_CODES.size > 0 ? "enabled" : "disabled",
   };
 
   return (
