@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  chatgpt-next-web:
+    image: ghcr.io/bohanyang/chatgpt-next-web
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_API_HOST: https://api.openai.com
+      CODE: ${CODE}
+    ports:
+      - 8080:3000
