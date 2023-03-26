@@ -8,26 +8,26 @@ RUN set -eux; \
         xz \
         git
 
-COPY package.json /app/
+COPY package.json yarn.lock /app/
 
-RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3 \
+RUN --mount=type=cache,target=/root/.cache/yarn \
     set -eux; \
     corepack enable; \
-    corepack prepare pnpm@latest --activate; \
+    corepack prepare yarn@1.22.19 --activate; \
     cd /app; \
-    pnpm install
+    yarn install
 
 RUN --mount=type=bind,source=.,target=/usr/src/app \
     set -eux; \
     cp -R /usr/src/app/. /app; \
     cd /app; \
-    pnpm build
+    yarn build
 
 FROM node:18-alpine
 
-COPY --from=builder --chown=www-data:www-data /app/.next/standalone /app/
-COPY --from=builder --chown=www-data:www-data /app/.next/static /app/.next/static/
-COPY --from=builder --chown=www-data:www-data /app/public /app/public/
+COPY --from=builder /app/.next/standalone /app/
+COPY --from=builder /app/.next/static /app/.next/static/
+COPY --from=builder /app/public /app/public/
 
 WORKDIR /app
 
