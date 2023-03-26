@@ -7,7 +7,7 @@
 
 One-Click to deploy your own ChatGPT web UI.
 
-[演示 Demo](https://chat-gpt-next-web.vercel.app/) / [反馈问题 Issues](https://github.com/Yidadaa/ChatGPT-Next-Web/issues)
+[演示 Demo](https://chat-gpt-next-web.vercel.app/) / [反馈 Issues](https://github.com/Yidadaa/ChatGPT-Next-Web/issues) / [加入 Discord](https://discord.gg/zrhvHCr79N) / [微信群](https://user-images.githubusercontent.com/16968934/227772522-b3ba3713-9206-4c8d-a81f-22300b7c313a.jpg) / [打赏开发者](https://user-images.githubusercontent.com/16968934/227772541-5bcd52d8-61b7-488c-a203-0330d8006e2b.jpg)
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FYidadaa%2FChatGPT-Next-Web&env=OPENAI_API_KEY&project-name=chatgpt-next-web&repository-name=ChatGPT-Next-Web)
 
@@ -84,7 +84,7 @@ You can star or watch this project or follow author to get release notifictions 
 code1,code2,code3
 ```
 
-增加或修改该环境变量后，请重新部署项目使改动生效。
+增加或修改该环境变量后，请**重新部署**项目使改动生效。
 
 This project provides limited access control. Please add an environment variable named `CODE` on the environment variables page. The value should be a custom control code separated by comma like this:
 
@@ -145,6 +145,10 @@ Please refer to `./docker-compose.yaml`.
 The free trial of the OpenAI account used by the demo will expire on April 1, 2023, and the demo will not be available at that time. 
 
 If you would like to contribute your API key, you can email it to the author and indicate the expiration date of the API key.
+
+## 鸣谢 Special Thanks
+### 捐赠者 Sponsor
+[@mushan0x0](https://github.com/mushan0x0)
 
 ## LICENSE
 
