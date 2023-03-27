@@ -3,7 +3,9 @@ import { persist } from "zustand/middleware";
 
 export interface AccessControlStore {
   accessCode: string;
+  token: string;
 
+  updateToken: (_: string) => void;
   updateCode: (_: string) => void;
   enabledAccessControl: () => boolean;
 }
@@ -13,12 +15,16 @@ export const ACCESS_KEY = "access-control";
 export const useAccessStore = create<AccessControlStore>()(
   persist(
     (set, get) => ({
+      token: "",
       accessCode: "",
       enabledAccessControl() {
         return true;
       },
       updateCode(code: string) {
         set((state) => ({ accessCode: code }));
+      },
+      updateToken(token: string) {
+        set((state) => ({ token }));
       },
     }),
     {
