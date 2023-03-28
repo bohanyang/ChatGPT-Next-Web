@@ -399,11 +399,16 @@ function useSwitchTheme() {
   useEffect(() => {
     document.body.classList.remove("light");
     document.body.classList.remove("dark");
+
     if (config.theme === "dark") {
       document.body.classList.add("dark");
     } else if (config.theme === "light") {
       document.body.classList.add("light");
     }
+
+    const themeColor = getComputedStyle(document.body).getPropertyValue("--theme-color").trim();
+    const metaDescription = document.querySelector('meta[name="theme-color"]');
+    metaDescription?.setAttribute('content', themeColor);
   }, [config.theme]);
 }
 
@@ -465,6 +470,16 @@ function showMemoryPrompt(session: ChatSession) {
   });
 }
 
+const useHasHydrated = () => {
+  const [hasHydrated, setHasHydrated] = useState<boolean>(false);
+
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
+
+  return hasHydrated;
+};
+
 export function Home() {
   const [createNewSession, currentIndex, removeSession] = useChatStore(
     (state) => [
@@ -473,7 +488,7 @@ export function Home() {
       state.removeSession,
     ]
   );
-  const loading = !useChatStore?.persist?.hasHydrated();
+  const loading = !useHasHydrated();
   const [showSideBar, setShowSideBar] = useState(true);
 
   // setting

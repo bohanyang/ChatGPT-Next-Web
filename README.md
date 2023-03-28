@@ -129,7 +129,7 @@ Please ask ChatGPT with prompt:
 how to deploy nextjs project with pm2 and yarn on my ubuntu server, the build command is `yarn build`, the start command is `yarn start`, the project must start with env var named `OPENAI_API_KEY`, the port is 3000, use ngnix
 ```
 
-### Docker Deployment
+### 容器部署 Docker Deployment
 
 请参考 `./docker-compose.yaml`。
 
@@ -157,6 +157,12 @@ If you would like to contribute your API key, you can email it to the author and
 
 [@mushan0x0](https://github.com/mushan0x0)
 [@ClarenceDan](https://github.com/ClarenceDan)
+
+### 贡献者 Contributor
+
+[@AprilNEA](https://github.com/AprilNEA)
+[@iSource](https://github.com/iSource)
+[@iFwu](https://github.com/iFwu)
 
 ## LICENSE
 

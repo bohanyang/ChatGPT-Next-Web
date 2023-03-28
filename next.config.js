@@ -15,4 +15,8 @@ const nextConfig = {
   output: 'standalone',
 };
 
+if (process.env.DOCKER) {
+  nextConfig.output = 'standalone'
+}
+
 module.exports = nextConfig;
