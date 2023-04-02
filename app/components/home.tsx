@@ -121,7 +121,7 @@ export function ChatList() {
           key={i}
           selected={i === selectedIndex}
           onClick={() => selectSession(i)}
-          onDelete={() => removeSession(i)}
+          onDelete={() => confirm(Locale.Home.DeleteChat) && removeSession(i)}
         />
       ))}
     </div>
@@ -132,9 +132,9 @@ function useSubmitHandler() {
   const config = useChatStore((state) => state.config);
   const submitKey = config.submitKey;
 
-  const shouldSubmit = (e: KeyboardEvent) => {
+  const shouldSubmit = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== "Enter") return false;
-
+    if (e.key === "Enter" && e.nativeEvent.isComposing) return false;
     return (
       (config.submitKey === SubmitKey.AltEnter && e.altKey) ||
       (config.submitKey === SubmitKey.CtrlEnter && e.ctrlKey) ||
@@ -256,7 +256,7 @@ export function Chat(props: {
   };
 
   // check if should send message
-  const onInputKeyDown = (e: KeyboardEvent) => {
+  const onInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (shouldSubmit(e)) {
       onUserSubmit();
       e.preventDefault();
@@ -453,7 +453,10 @@ export function Chat(props: {
                       className="markdown-body"
                       style={{ fontSize: `${fontSize}px` }}
                       onContextMenu={(e) => onRightClick(e, message)}
-                      onDoubleClickCapture={() => setUserInput(message.content)}
+                      onDoubleClickCapture={() => {
+                        if (!isMobileScreen()) return;
+                        setUserInput(message.content);
+                      }}
                     >
                       <Markdown content={message.content} />
                     </div>
@@ -470,7 +473,7 @@ export function Chat(props: {
             </div>
           );
         })}
-        <div ref={latestMessageRef} style={{ opacity: 0, height: "4em" }}>
+        <div ref={latestMessageRef} style={{ opacity: 0, height: "1px" }}>
           -
         </div>
       </div>
@@ -485,7 +488,7 @@ export function Chat(props: {
             rows={4}
             onInput={(e) => onInput(e.currentTarget.value)}
             value={userInput}
-            onKeyDown={(e) => onInputKeyDown(e as any)}
+            onKeyDown={onInputKeyDown}
             onFocus={() => setAutoScroll(true)}
             onBlur={() => {
               setAutoScroll(false);

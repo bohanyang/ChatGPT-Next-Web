@@ -36,11 +36,21 @@ One-Click to deploy your own ChatGPT web UI.
 - Automatically compresses chat history to support long conversations while also saving your tokens
 - One-click export all chat history with full Markdown support
 
-## 使用
+## 开发计划 Roadmap
+- System Prompt: pin a user defined prompt as system prompt 为每个对话设置系统 Prompt [#138](https://github.com/Yidadaa/ChatGPT-Next-Web/issues/138)
+- User Prompt: user can edit and save custom prompts to prompt list 允许用户自行编辑内置 Prompt 列表
+- Self-host Model: support llama, alpaca, ChatGLM, BELLE etc. 支持自部署的大语言模型
+- Plugins: support network search, caculator, any other apis etc. 插件机制，支持联网搜索、计算器、调用其他平台 api [#165](https://github.com/Yidadaa/ChatGPT-Next-Web/issues/165)
+
+### 不会开发的功能 Not in Plan
+- User login, accounts, cloud sync 用户登录、账号管理、消息云同步
+- UI text customize 界面文字自定义
+
+## 开始使用
 
 1. 准备好你的 [OpenAI API Key](https://platform.openai.com/account/api-keys);
 2. 点击右侧按钮开始部署：
-   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FYidadaa%2FChatGPT-Next-Web&env=OPENAI_API_KEY&env=CODE&project-name=chatgpt-next-web&repository-name=ChatGPT-Next-Web)，直接使用 Github 账号登陆即可，记得在环境变量页填入 API Key；
+   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FYidadaa%2FChatGPT-Next-Web&env=OPENAI_API_KEY&env=CODE&project-name=chatgpt-next-web&repository-name=ChatGPT-Next-Web)，直接使用 Github 账号登录即可，记得在环境变量页填入 API Key；
 3. 部署完毕后，即可开始使用；
 4. （可选）[绑定自定义域名](https://vercel.com/docs/concepts/projects/domains/add-a-domain)：Vercel 分配的域名 DNS 在某些区域被污染了，绑定自定义域名即可直连。
 
@@ -195,4 +205,4 @@ Please refer to `./docker-compose.yaml`.
 
 ## LICENSE
 
-- [Anti 996 License](https://github.com/kattgu7/Anti-996-License/blob/master/LICENSE_CN_EN)
+[Anti 996 License](https://github.com/kattgu7/Anti-996-License/blob/master/LICENSE_CN_EN)

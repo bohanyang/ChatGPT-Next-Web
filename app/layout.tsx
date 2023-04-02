@@ -7,7 +7,8 @@ import process from "child_process";
 let COMMIT_ID: string | undefined;
 try {
   COMMIT_ID = process
-    .execSync("git describe --tags --abbrev=0")
+    // .execSync("git describe --tags --abbrev=0")
+    .execSync("git rev-parse --short HEAD")
     .toString()
     .trim();
 } catch (e) {

@@ -11,6 +11,10 @@ import { trimTopic } from "../utils";
 
 import Locale from "../locales";
 
+if (!Array.prototype.at) {
+  require("array.prototype.at/auto");
+}
+
 export type Message = ChatCompletionResponseMessage & {
   date: string;
   streaming?: boolean;
@@ -185,6 +189,7 @@ interface ChatStore {
   config: ChatConfig;
   sessions: ChatSession[];
   currentSessionIndex: number;
+  clearSessions: () => void;
   removeSession: (index: number) => void;
   selectSession: (index: number) => void;
   newSession: () => void;
@@ -221,6 +226,13 @@ export const useChatStore = create<ChatStore>()(
       currentSessionIndex: 0,
       config: {
         ...DEFAULT_CONFIG,
+      },
+
+      clearSessions() {
+        set(() => ({
+          sessions: [createEmptySession()],
+          currentSessionIndex: 0,
+        }));
       },
 
       resetConfig() {
