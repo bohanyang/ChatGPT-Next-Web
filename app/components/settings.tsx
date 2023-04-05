@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo, HTMLProps } from "react";
 
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 
@@ -8,6 +8,8 @@ import ResetIcon from "../icons/reload.svg";
 import CloseIcon from "../icons/close.svg";
 import ClearIcon from "../icons/clear.svg";
 import EditIcon from "../icons/edit.svg";
+import EyeIcon from "../icons/eye.svg";
+import EyeOffIcon from "../icons/eye-off.svg";
 
 import { List, ListItem, Popover, showToast } from "./ui-lib";
 
@@ -19,8 +21,9 @@ import {
   ALL_MODELS,
   useUpdateStore,
   useAccessStore,
+  ModalConfigValidator,
 } from "../store";
-import { Avatar, PromptHints } from "./home";
+import { Avatar } from "./chat";
 
 import Locale, { AllLangs, changeLang, getLang } from "../locales";
 import { getCurrentVersion } from "../utils";
@@ -28,6 +31,7 @@ import Link from "next/link";
 import { UPDATE_URL } from "../constant";
 import { SearchService, usePromptStore } from "../store/prompt";
 import { requestUsage } from "../requests";
+import { ErrorBoundary } from "./error";
 
 function SettingItem(props: {
   title: string;
@@ -44,6 +48,25 @@ function SettingItem(props: {
       </div>
       {props.children}
     </ListItem>
+  );
+}
+
+function PasswordInput(props: HTMLProps<HTMLInputElement>) {
+  const [visible, setVisible] = useState(false);
+
+  function changeVisibility() {
+    setVisible(!visible);
+  }
+
+  return (
+    <div className={styles["password-input"]}>
+      <IconButton
+        icon={visible ? <EyeIcon /> : <EyeOffIcon />}
+        onClick={changeVisibility}
+        className={styles["password-eye"]}
+      />
+      <input {...props} type={visible ? "text" : "password"} />
+    </div>
   );
 }
 
@@ -72,7 +95,6 @@ export function Settings(props: { closeSettings: () => void }) {
   }
 
   const [usage, setUsage] = useState<{
-    granted?: number;
     used?: number;
   }>();
   const [loadingUsage, setLoadingUsage] = useState(false);
@@ -81,8 +103,7 @@ export function Settings(props: { closeSettings: () => void }) {
     requestUsage()
       .then((res) =>
         setUsage({
-          granted: res?.total_granted,
-          used: res?.total_used,
+          used: res,
         }),
       )
       .finally(() => {
@@ -92,12 +113,13 @@ export function Settings(props: { closeSettings: () => void }) {
 
   useEffect(() => {
     checkUpdate();
-    checkUsage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const accessStore = useAccessStore();
   const enabledAccessControl = useMemo(
     () => accessStore.enabledAccessControl(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
@@ -105,8 +127,15 @@ export function Settings(props: { closeSettings: () => void }) {
   const builtinCount = SearchService.count.builtin;
   const customCount = promptStore.prompts.size ?? 0;
 
+  const showUsage = accessStore.token !== "";
+  useEffect(() => {
+    if (showUsage) {
+      checkUsage();
+    }
+  }, [showUsage]);
+
   return (
-    <>
+    <ErrorBoundary>
       <div className={styles["window-header"]}>
         <div className={styles["window-header-title"]}>
           <div className={styles["window-header-main-title"]}>
@@ -278,6 +307,19 @@ export function Settings(props: { closeSettings: () => void }) {
               }
             ></input>
           </SettingItem>
+
+          <SettingItem title={Locale.Settings.SendPreviewBubble}>
+            <input
+              type="checkbox"
+              checked={config.sendPreviewBubble}
+              onChange={(e) =>
+                updateConfig(
+                  (config) =>
+                    (config.sendPreviewBubble = e.currentTarget.checked),
+                )
+              }
+            ></input>
+          </SettingItem>
         </List>
         <List>
           <SettingItem
@@ -316,14 +358,14 @@ export function Settings(props: { closeSettings: () => void }) {
               title={Locale.Settings.AccessCode.Title}
               subTitle={Locale.Settings.AccessCode.SubTitle}
             >
-              <input
+              <PasswordInput
                 value={accessStore.accessCode}
                 type="text"
                 placeholder={Locale.Settings.AccessCode.Placeholder}
                 onChange={(e) => {
                   accessStore.updateCode(e.currentTarget.value);
                 }}
-              ></input>
+              />
             </SettingItem>
           ) : (
             <></>
@@ -333,28 +375,27 @@ export function Settings(props: { closeSettings: () => void }) {
             title={Locale.Settings.Token.Title}
             subTitle={Locale.Settings.Token.SubTitle}
           >
-            <input
+            <PasswordInput
               value={accessStore.token}
               type="text"
               placeholder={Locale.Settings.Token.Placeholder}
               onChange={(e) => {
                 accessStore.updateToken(e.currentTarget.value);
               }}
-            ></input>
+            />
           </SettingItem>
 
           <SettingItem
             title={Locale.Settings.Usage.Title}
             subTitle={
-              loadingUsage
-                ? Locale.Settings.Usage.IsChecking
-                : Locale.Settings.Usage.SubTitle(
-                    usage?.granted ?? "[?]",
-                    usage?.used ?? "[?]",
-                  )
+              showUsage
+                ? loadingUsage
+                  ? Locale.Settings.Usage.IsChecking
+                  : Locale.Settings.Usage.SubTitle(usage?.used ?? "[?]")
+                : Locale.Settings.Usage.NoAccess
             }
           >
-            {loadingUsage ? (
+            {!showUsage || loadingUsage ? (
               <div />
             ) : (
               <IconButton
@@ -375,7 +416,7 @@ export function Settings(props: { closeSettings: () => void }) {
               value={config.historyMessageCount}
               min="0"
               max="25"
-              step="2"
+              step="1"
               onChange={(e) =>
                 updateConfig(
                   (config) =>
@@ -412,7 +453,9 @@ export function Settings(props: { closeSettings: () => void }) {
               onChange={(e) => {
                 updateConfig(
                   (config) =>
-                    (config.modelConfig.model = e.currentTarget.value),
+                    (config.modelConfig.model = ModalConfigValidator.model(
+                      e.currentTarget.value,
+                    )),
                 );
               }}
             >
@@ -429,7 +472,7 @@ export function Settings(props: { closeSettings: () => void }) {
           >
             <input
               type="range"
-              value={config.modelConfig.temperature.toFixed(1)}
+              value={config.modelConfig.temperature?.toFixed(1)}
               min="0"
               max="2"
               step="0.1"
@@ -437,7 +480,9 @@ export function Settings(props: { closeSettings: () => void }) {
                 updateConfig(
                   (config) =>
                     (config.modelConfig.temperature =
-                      e.currentTarget.valueAsNumber),
+                      ModalConfigValidator.temperature(
+                        e.currentTarget.valueAsNumber,
+                      )),
                 );
               }}
             ></input>
@@ -449,13 +494,15 @@ export function Settings(props: { closeSettings: () => void }) {
             <input
               type="number"
               min={100}
-              max={4096}
+              max={32000}
               value={config.modelConfig.max_tokens}
               onChange={(e) =>
                 updateConfig(
                   (config) =>
                     (config.modelConfig.max_tokens =
-                      e.currentTarget.valueAsNumber),
+                      ModalConfigValidator.max_tokens(
+                        e.currentTarget.valueAsNumber,
+                      )),
                 )
               }
             ></input>
@@ -466,7 +513,7 @@ export function Settings(props: { closeSettings: () => void }) {
           >
             <input
               type="range"
-              value={config.modelConfig.presence_penalty.toFixed(1)}
+              value={config.modelConfig.presence_penalty?.toFixed(1)}
               min="-2"
               max="2"
               step="0.5"
@@ -474,13 +521,15 @@ export function Settings(props: { closeSettings: () => void }) {
                 updateConfig(
                   (config) =>
                     (config.modelConfig.presence_penalty =
-                      e.currentTarget.valueAsNumber),
+                      ModalConfigValidator.presence_penalty(
+                        e.currentTarget.valueAsNumber,
+                      )),
                 );
               }}
             ></input>
           </SettingItem>
         </List>
       </div>
-    </>
+    </ErrorBoundary>
   );
 }

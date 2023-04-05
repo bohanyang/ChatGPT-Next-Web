@@ -11,13 +11,10 @@ import { trimTopic } from "../utils";
 
 import Locale from "../locales";
 
-if (!Array.prototype.at) {
-  require("array.prototype.at/auto");
-}
-
 export type Message = ChatCompletionResponseMessage & {
   date: string;
   streaming?: boolean;
+  isError?: boolean;
 };
 
 export enum SubmitKey {
@@ -43,6 +40,7 @@ export interface ChatConfig {
   fontSize: number;
   theme: Theme;
   tightBorder: boolean;
+  sendPreviewBubble: boolean;
 
   disablePromptHint: boolean;
 
@@ -55,6 +53,8 @@ export interface ChatConfig {
 }
 
 export type ModelConfig = ChatConfig["modelConfig"];
+
+export const ROLES: Message["role"][] = ["system", "user", "assistant"];
 
 const ENABLE_GPT4 = true;
 
@@ -85,43 +85,39 @@ export const ALL_MODELS = [
   },
 ];
 
-export function isValidModel(name: string) {
-  return ALL_MODELS.some((m) => m.name === name && m.available);
+export function limitNumber(
+  x: number,
+  min: number,
+  max: number,
+  defaultValue: number,
+) {
+  if (typeof x !== "number" || isNaN(x)) {
+    return defaultValue;
+  }
+
+  return Math.min(max, Math.max(min, x));
 }
 
-export function isValidNumber(x: number, min: number, max: number) {
-  return typeof x === "number" && x <= max && x >= min;
+export function limitModel(name: string) {
+  return ALL_MODELS.some((m) => m.name === name && m.available)
+    ? name
+    : ALL_MODELS[4].name;
 }
 
-export function filterConfig(oldConfig: ModelConfig): Partial<ModelConfig> {
-  const config = Object.assign({}, oldConfig);
-
-  const validator: {
-    [k in keyof ModelConfig]: (x: ModelConfig[keyof ModelConfig]) => boolean;
-  } = {
-    model(x) {
-      return isValidModel(x as string);
-    },
-    max_tokens(x) {
-      return isValidNumber(x as number, 100, 4000);
-    },
-    presence_penalty(x) {
-      return isValidNumber(x as number, -2, 2);
-    },
-    temperature(x) {
-      return isValidNumber(x as number, 0, 2);
-    },
-  };
-
-  Object.keys(validator).forEach((k) => {
-    const key = k as keyof ModelConfig;
-    if (!validator[key](config[key])) {
-      delete config[key];
-    }
-  });
-
-  return config;
-}
+export const ModalConfigValidator = {
+  model(x: string) {
+    return limitModel(x);
+  },
+  max_tokens(x: number) {
+    return limitNumber(x, 0, 32000, 2000);
+  },
+  presence_penalty(x: number) {
+    return limitNumber(x, -2, 2, 0);
+  },
+  temperature(x: number) {
+    return limitNumber(x, 0, 2, 1);
+  },
+};
 
 const DEFAULT_CONFIG: ChatConfig = {
   historyMessageCount: 4,
@@ -132,6 +128,7 @@ const DEFAULT_CONFIG: ChatConfig = {
   fontSize: 14,
   theme: Theme.Auto as Theme,
   tightBorder: false,
+  sendPreviewBubble: true,
 
   disablePromptHint: false,
 
@@ -153,6 +150,7 @@ export interface ChatSession {
   id: number;
   topic: string;
   memoryPrompt: string;
+  context: Message[];
   messages: Message[];
   stat: ChatStat;
   lastUpdate: string;
@@ -160,6 +158,11 @@ export interface ChatSession {
 }
 
 const DEFAULT_TOPIC = Locale.Store.DefaultTopic;
+export const BOT_HELLO: Message = {
+  role: "assistant",
+  content: Locale.Store.BotHello,
+  date: "",
+};
 
 function createEmptySession(): ChatSession {
   const createDate = new Date().toLocaleString();
@@ -168,13 +171,8 @@ function createEmptySession(): ChatSession {
     id: Date.now(),
     topic: DEFAULT_TOPIC,
     memoryPrompt: "",
-    messages: [
-      {
-        role: "assistant",
-        content: Locale.Store.BotHello,
-        date: createDate,
-      },
-    ],
+    context: [],
+    messages: [],
     stat: {
       tokenCount: 0,
       wordCount: 0,
@@ -350,9 +348,15 @@ export const useChatStore = create<ChatStore>()(
               set(() => ({}));
             }
           },
-          onError(error) {
-            botMessage.content += "\n\n" + Locale.Store.Error;
+          onError(error, statusCode) {
+            if (statusCode === 401) {
+              botMessage.content = Locale.Error.Unauthorized;
+            } else {
+              botMessage.content += "\n\n" + Locale.Store.Error;
+            }
             botMessage.streaming = false;
+            userMessage.isError = true;
+            botMessage.isError = true;
             set(() => ({}));
             ControllerPool.remove(sessionIndex, messageIndex);
           },
@@ -382,16 +386,19 @@ export const useChatStore = create<ChatStore>()(
       getMessagesWithMemory() {
         const session = get().currentSession();
         const config = get().config;
-        const n = session.messages.length;
-        const recentMessages = session.messages.slice(
-          n - config.historyMessageCount,
-        );
+        const messages = session.messages.filter((msg) => !msg.isError);
+        const n = messages.length;
 
-        const memoryPrompt = get().getMemoryPrompt();
+        const context = session.context.slice();
 
-        if (session.memoryPrompt) {
-          recentMessages.unshift(memoryPrompt);
+        if (session.memoryPrompt && session.memoryPrompt.length > 0) {
+          const memoryPrompt = get().getMemoryPrompt();
+          context.push(memoryPrompt);
         }
+
+        const recentMessages = context.concat(
+          messages.slice(Math.max(0, n - config.historyMessageCount)),
+        );
 
         return recentMessages;
       },
@@ -430,11 +437,13 @@ export const useChatStore = create<ChatStore>()(
         let toBeSummarizedMsgs = session.messages.slice(
           session.lastSummarizeIndex,
         );
+
         const historyMsgLength = countMessages(toBeSummarizedMsgs);
 
-        if (historyMsgLength > 4000) {
+        if (historyMsgLength > get().config?.modelConfig?.max_tokens ?? 4000) {
+          const n = toBeSummarizedMsgs.length;
           toBeSummarizedMsgs = toBeSummarizedMsgs.slice(
-            -config.historyMessageCount,
+            Math.max(0, n - config.historyMessageCount),
           );
         }
 
@@ -497,7 +506,16 @@ export const useChatStore = create<ChatStore>()(
     }),
     {
       name: LOCAL_KEY,
-      version: 1,
+      version: 1.1,
+      migrate(persistedState, version) {
+        const state = persistedState as ChatStore;
+
+        if (version === 1) {
+          state.sessions.forEach((s) => (s.context = []));
+        }
+
+        return state;
+      },
     },
   ),
 );
