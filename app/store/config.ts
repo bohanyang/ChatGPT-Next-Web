@@ -54,6 +54,8 @@ export type ModelConfig = ChatConfig["modelConfig"];
 
 const ENABLE_GPT4 = true;
 
+const ENABLE_GPT_MINOR = false;
+
 export const ALL_MODELS = [
   {
     name: "gpt-4",
@@ -61,11 +63,11 @@ export const ALL_MODELS = [
   },
   {
     name: "gpt-4-0314",
-    available: ENABLE_GPT4,
+    available: ENABLE_GPT4 && ENABLE_GPT_MINOR,
   },
   {
     name: "gpt-4-0613",
-    available: ENABLE_GPT4,
+    available: ENABLE_GPT4 && ENABLE_GPT_MINOR,
   },
   {
     name: "gpt-4-32k",
@@ -73,11 +75,11 @@ export const ALL_MODELS = [
   },
   {
     name: "gpt-4-32k-0314",
-    available: ENABLE_GPT4,
+    available: ENABLE_GPT4 && ENABLE_GPT_MINOR,
   },
   {
     name: "gpt-4-32k-0613",
-    available: ENABLE_GPT4,
+    available: ENABLE_GPT4 && ENABLE_GPT_MINOR,
   },
   {
     name: "gpt-3.5-turbo",
@@ -85,11 +87,11 @@ export const ALL_MODELS = [
   },
   {
     name: "gpt-3.5-turbo-0301",
-    available: true,
+    available: ENABLE_GPT_MINOR,
   },
   {
     name: "gpt-3.5-turbo-0613",
-    available: true,
+    available: ENABLE_GPT_MINOR,
   },
   {
     name: "gpt-3.5-turbo-16k",
@@ -97,7 +99,7 @@ export const ALL_MODELS = [
   },
   {
     name: "gpt-3.5-turbo-16k-0613",
-    available: true,
+    available: ENABLE_GPT_MINOR,
   },
   {
     name: "qwen-v1", // 通义千问
