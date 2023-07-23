@@ -4,65 +4,6 @@ import { LLMModel } from "../client/api";
 import { getClientConfig } from "../config/client";
 import { DEFAULT_INPUT_TEMPLATE, DEFAULT_MODELS, StoreKey } from "../constant";
 
-export type ModelType = (typeof DEFAULT_MODELS)[number]["name"];
-
-export enum SubmitKey {
-  Enter = "Enter",
-  CtrlEnter = "Ctrl + Enter",
-  ShiftEnter = "Shift + Enter",
-  AltEnter = "Alt + Enter",
-  MetaEnter = "Meta + Enter",
-}
-
-export enum Theme {
-  Auto = "auto",
-  Dark = "dark",
-  Light = "light",
-}
-
-export const DEFAULT_CONFIG = {
-  submitKey: SubmitKey.CtrlEnter as SubmitKey,
-  avatar: "1f603",
-  fontSize: 14,
-  theme: Theme.Auto as Theme,
-  tightBorder: !!getClientConfig()?.isApp,
-  sendPreviewBubble: true,
-  sidebarWidth: 300,
-
-  disablePromptHint: false,
-
-  dontShowMaskSplashScreen: false, // dont show splash screen when create chat
-  hideBuiltinMasks: false, // dont add builtin masks
-
-  customModels: "",
-  models: DEFAULT_MODELS as any as LLMModel[],
-
-  modelConfig: {
-    model: "gpt-3.5-turbo" as ModelType,
-    temperature: 0.5,
-    top_p: 1,
-    max_tokens: 2000,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 4,
-    compressMessageLengthThreshold: 1000,
-    enableInjectSystemPrompts: true,
-    template: DEFAULT_INPUT_TEMPLATE,
-  },
-};
-
-export type ChatConfig = typeof DEFAULT_CONFIG;
-
-export type ChatConfigStore = ChatConfig & {
-  reset: () => void;
-  update: (updater: (config: ChatConfig) => void) => void;
-  mergeModels: (newModels: LLMModel[]) => void;
-  allModels: () => LLMModel[];
-};
-
-export type ModelConfig = ChatConfig["modelConfig"];
-
 const ENABLE_GPT4 = true;
 
 const ENABLE_GPT_MINOR = false;
@@ -133,6 +74,65 @@ export const ALL_MODELS = [
     available: false,
   },
 ] as const;
+
+export type ModelType = (typeof ALL_MODELS)[number]["name"];
+
+export enum SubmitKey {
+  Enter = "Enter",
+  CtrlEnter = "Ctrl + Enter",
+  ShiftEnter = "Shift + Enter",
+  AltEnter = "Alt + Enter",
+  MetaEnter = "Meta + Enter",
+}
+
+export enum Theme {
+  Auto = "auto",
+  Dark = "dark",
+  Light = "light",
+}
+
+export const DEFAULT_CONFIG = {
+  submitKey: SubmitKey.CtrlEnter as SubmitKey,
+  avatar: "1f603",
+  fontSize: 14,
+  theme: Theme.Auto as Theme,
+  tightBorder: !!getClientConfig()?.isApp,
+  sendPreviewBubble: true,
+  sidebarWidth: 300,
+
+  disablePromptHint: false,
+
+  dontShowMaskSplashScreen: false, // dont show splash screen when create chat
+  hideBuiltinMasks: false, // dont add builtin masks
+
+  customModels: "",
+  models: DEFAULT_MODELS as any as LLMModel[],
+
+  modelConfig: {
+    model: "gpt-3.5-turbo" as ModelType,
+    temperature: 0.5,
+    top_p: 1,
+    max_tokens: 2000,
+    presence_penalty: 0,
+    frequency_penalty: 0,
+    sendMemory: true,
+    historyMessageCount: 4,
+    compressMessageLengthThreshold: 1000,
+    enableInjectSystemPrompts: true,
+    template: DEFAULT_INPUT_TEMPLATE,
+  },
+};
+
+export type ChatConfig = typeof DEFAULT_CONFIG;
+
+export type ChatConfigStore = ChatConfig & {
+  reset: () => void;
+  update: (updater: (config: ChatConfig) => void) => void;
+  mergeModels: (newModels: LLMModel[]) => void;
+  allModels: () => LLMModel[];
+};
+
+export type ModelConfig = ChatConfig["modelConfig"];
 
 export function limitNumber(
   x: number,
