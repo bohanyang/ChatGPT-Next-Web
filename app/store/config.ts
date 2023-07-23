@@ -134,8 +134,6 @@ export const ALL_MODELS = [
   },
 ] as const;
 
-export type ModelType = (typeof ALL_MODELS)[number]["name"];
-
 export function limitNumber(
   x: number,
   min: number,
